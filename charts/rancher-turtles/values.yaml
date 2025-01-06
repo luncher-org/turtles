@@ -20,7 +20,7 @@ rancherTurtles:
     managementv3-cluster:
       enabled: true
     managementv3-cluster-migration:
-      enabled: false
+      enabled: true
     propagate-labels:
       enabled: false
     etcd-snapshot-restore:
