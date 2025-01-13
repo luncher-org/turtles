@@ -67,11 +67,6 @@ var _ = Describe("Chart upgrade functionality should work", Label(e2e.ShortTestL
 			PostUpgradeSteps:      []func(){},
 		}
 
-		testenv.PreRancherTurtlesInstallHook(&rtInput)
-
-		rtInput.AdditionalValues["rancherTurtles.features.addon-provider-fleet.enabled"] = "true"
-		rtInput.AdditionalValues["rancherTurtles.features.managementv3-cluster.enabled"] = "false" // disable the default management.cattle.io/v3 controller
-
 		upgradeInput.PostUpgradeSteps = append(upgradeInput.PostUpgradeSteps, func() {
 			By("Waiting for CAAPF deployment to be available")
 			capiframework.WaitForDeploymentsAvailable(ctx, capiframework.WaitForDeploymentsAvailableInput{
