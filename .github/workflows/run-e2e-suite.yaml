@@ -55,10 +55,11 @@ env:
   GINKGO_TESTS: ${{ github.workspace }}/${{ inputs.test_suite }}
   GINKGO_NODES: 5
   TAG: v0.0.1
+  GITEA_USER_PWD: ${{ secrets.GITEA_USER_PWD }}
 
 jobs:
   run_e2e_tests:
-    runs-on: [self-hosted, linux]
+    runs-on: ubuntu-latest
     steps:
       - name: Install eksctl
         run: |
@@ -100,16 +101,16 @@ jobs:
         with:
           name: artifacts_${{ inputs.artifact_name }}
           path: _artifacts
-      - name: Cleanup Azure Resources
-        if: ${{ inputs.run_azure_janitor && always() }}
-        uses: rancher/azure-janitor@v0.1.2
-        with:
-          resource-groups: highlander-e2e*
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID}}
-          client-id: ${{ secrets.AZURE_CLIENT_ID}}
-          client-secret: ${{ secrets.AZURE_CLIENT_SECRET}}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID}}
-          commit: true
+      # - name: Cleanup Azure Resources
+      #   if: ${{ inputs.run_azure_janitor && always() }}
+      #   uses: rancher/azure-janitor@v0.1.2
+      #   with:
+      #     resource-groups: highlander-e2e*
+      #     subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID}}
+      #     client-id: ${{ secrets.AZURE_CLIENT_ID}}
+      #     client-secret: ${{ secrets.AZURE_CLIENT_SECRET}}
+      #     tenant-id: ${{ secrets.AZURE_TENANT_ID}}
+      #     commit: true
       - name: Cleanup GCP Resources
         if: ${{ inputs.run_gcp_janitor && always() }}
         uses: rancher/gcp-janitor@v0.1.0
@@ -120,32 +121,32 @@ jobs:
           age-in-hours: 6
           resource-label-key: ${{ secrets.GCP_LABEL_KEY }}
           resource-label-value: ${{ secrets.GCP_LABEL_VALUE }}
-      - name: Send failed status to slack
-        if: failure()
-        uses: slackapi/slack-github-action@v2.0.0
-        with:
-          webhook-type: incoming-webhook
-          payload: |
-            {
-              "blocks": [
-                {
-                  "type": "section",
-                    "text": {
-                      "type": "mrkdwn",
-                      "text": "Rancher turtles E2E test (${{ inputs.test_name }}) run failed. Job trigger by ${{ github.event_name }} event."
-                    },
-                    "accessory": {
-                      "type": "button",
-                      "text": {
-                        "type": "plain_text",
-                        "text": ":github:",
-                          "emoji": true
-                        },
-                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-                    }
-                  }
-              ]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+      # - name: Send failed status to slack
+      #   if: failure()
+      #   uses: slackapi/slack-github-action@v2.0.0
+      #   with:
+      #     webhook-type: incoming-webhook
+      #     payload: |
+      #       {
+      #         "blocks": [
+      #           {
+      #             "type": "section",
+      #               "text": {
+      #                 "type": "mrkdwn",
+      #                 "text": "Rancher turtles E2E test (${{ inputs.test_name }}) run failed. Job trigger by ${{ github.event_name }} event."
+      #               },
+      #               "accessory": {
+      #                 "type": "button",
+      #                 "text": {
+      #                   "type": "plain_text",
+      #                   "text": ":github:",
+      #                     "emoji": true
+      #                   },
+      #                 "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+      #               }
+      #             }
+      #         ]
+      #       }
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      #     SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
