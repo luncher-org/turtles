@@ -29,6 +29,10 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	turtlesframework "github.com/rancher/turtles/test/framework"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/selection"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -138,4 +142,17 @@ func dumpBootstrapCluster(ctx context.Context) {
 		fmt.Printf("Failed to artifacts for the bootstrap cluster: %v\n", err)
 		return
 	}
+}
+
+// CleanupClusterPodPool removes some of the finished pods after rancher rollout to cleanup pod pool to
+// allow scheduling new pods.
+func CleanupClusterPodPool(ctx context.Context, cl client.Client) error {
+	req, err := labels.NewRequirement("pod-impersonation.cattle.io/token", selection.Exists, []string{})
+	if err != nil {
+		return err
+	}
+
+	return cl.DeleteAllOf(ctx, &corev1.Pod{}, client.InNamespace(""), client.MatchingLabelsSelector{
+		Selector: labels.NewSelector().Add(*req),
+	})
 }

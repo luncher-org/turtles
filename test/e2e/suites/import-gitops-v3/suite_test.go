@@ -21,13 +21,13 @@ package import_gitops_v3
 
 import (
 	"context"
-	"encoding/json"
 	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/rancher/turtles/test/e2e"
 	"github.com/rancher/turtles/test/testenv"
+	"k8s.io/apimachinery/pkg/util/json"
 	capiframework "sigs.k8s.io/cluster-api/test/framework"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
@@ -132,6 +132,8 @@ var _ = SynchronizedBeforeSuite(
 			CustomIngressConfig:   e2e.GiteaIngress,
 		})
 
+		Expect(testenv.CleanupClusterPodPool(ctx, setupClusterResult.BootstrapClusterProxy.GetClient())).To(Succeed())
+
 		data, err := json.Marshal(e2e.Setup{
 			ClusterName:     setupClusterResult.ClusterName,
 			KubeconfigPath:  setupClusterResult.KubeconfigPath,
@@ -158,11 +160,11 @@ var _ = SynchronizedAfterSuite(
 	},
 	func() {
 		testenv.UninstallGitea(ctx, testenv.UninstallGiteaInput{
-			BootstrapClusterProxy: setupClusterResult.BootstrapClusterProxy,
+			BootstrapClusterProxy: bootstrapClusterProxy,
 		})
 
 		testenv.UninstallRancherTurtles(ctx, testenv.UninstallRancherTurtlesInput{
-			BootstrapClusterProxy: setupClusterResult.BootstrapClusterProxy,
+			BootstrapClusterProxy: bootstrapClusterProxy,
 		})
 
 		testenv.CleanupTestCluster(ctx, testenv.CleanupTestClusterInput{
